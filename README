@@ -1,0 +1,8 @@
+Userspace OOM killer
+
+This tool is intended to run as a daemon and manage a single memory cgroup (perhaps the root cgroup owned by a batch scheduler). When it detects an out-of-memory event, it selects the user who is consuming the most memory and terminates their processes in a way which attempts to be as gentle as possible to any kernel tasks that may be running on their behalf (for example, parallel filesystems). 
+
+
+Dependencies:
+
+libcgroup: http://libcg.sourceforge.net

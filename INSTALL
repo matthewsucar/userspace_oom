@@ -1,0 +1,13 @@
+You'll first need to setup a memory limited cgroup with the kernel 
+oomkiller disabled. See the Linux cgroup documentation for details. 
+
+Then see the included "build.sh" script for an example of how to build. 
+You'll need to ensure that libcgroup (and headers) is available. 
+
+Once you have a binary, copy it to an appropriate location on your system. 
+"init.sh" is included as a sample RedHat (6) compatible style startup script
+If you'd like to use it, you'll need to 
+at least edit the "cg" variable with the name of the cgroup you'd like to 
+monitor. 
+
+For now, see "oomkiller.c" for a list of command line options
