@@ -74,6 +74,7 @@ int main(int argc, char** argv)
 		{ "cgroup", required_argument, NULL, 'g' },
 		{ "pidfile", required_argument, NULL, 'p'},
 		{ "restart_on_crash", no_argument, NULL, 'r'},
+		{ "verbose", no_argument, NULL, 'v'}, 
 		{ NULL, 0, NULL, 0}
 	};
 
@@ -91,10 +92,11 @@ int main(int argc, char** argv)
 	char daemon_flag = 0;
 	char restart_on_crash_flg = 0;
 	struct cgroup_context cgc;
+	char verbose_log = 0;
 	cgc.cgroup_name = NULL;
 
 	int ch;
-	while((ch = getopt_long(argc, argv, "rdg:p:", longopts, NULL)) != -1)
+	while((ch = getopt_long(argc, argv, "rvdg:p:", longopts, NULL)) != -1)
 	{
 		switch(ch)
 		{
@@ -109,6 +111,9 @@ int main(int argc, char** argv)
 				break;
 			case 'r':
 				restart_on_crash_flg = 1;
+				break;
+			case 'v':
+				verbose_log = 1;
 				break;
 			default:
 				break;
@@ -208,7 +213,8 @@ int main(int argc, char** argv)
 		{
 			read(cgc.efd, &efdcounter, sizeof(uint64_t));
 			flag = 0; //stop killing if the task list is empty (shouldn't happen)
-			log_process_table(); //dump process list to syslog
+			if(verbose_log)
+				log_process_table(); //dump process list to syslog
 			while(is_oom(&cgc) && flag >= 0)
 			{
 				flag = find_victim(&cgc);

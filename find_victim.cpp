@@ -151,11 +151,48 @@ char is_oom(struct cgroup_context* cgc)
 }
 }
 
+void get_cgroup_from_pid(pid_t pid, std::string& result)
+{
+	char* path;
+	asprintf(&path, "/proc/%d/cgroup", pid);
+	std::ifstream gcl(path, std::ifstream::in);
+	while(gcl.good())
+	{
+		std::string token;
+		gcl >> token;
+		size_t delim = 0;
+		delim = token.find_first_of(':');
+		token.erase(0, delim);
+		if(token.find("memory:/") != std::string::npos)
+		{
+			delim = token.find_first_of(':');
+			if((delim+1) > token.length())
+			{
+				result.append("/;");
+			}
+			else
+			{
+				result.append(token.substr(delim+1));
+				result.append(";");
+			}
+		}
+	}
+	gcl.close();
+	free(path);
+}
+
 void sigkill_victim(pid_t pid)
 {
 	uid_t victim_uid;
+	std::string cgroups;
+	char* log_msg;
 	victim_uid = get_uid(pid);
-	slog(LOG_ALERT,"killing UID:%u PID %d\n", victim_uid, pid);
+	get_cgroup_from_pid(pid, cgroups);
+	asprintf(&log_msg, "killing UID:%u PID %d; cgroups: %s\n", victim_uid, pid, 
+			 cgroups.c_str()
+			);
+	slog(LOG_ALERT, log_msg);
+	free(log_msg);
 	kill(pid, SIGKILL);
 
 }
