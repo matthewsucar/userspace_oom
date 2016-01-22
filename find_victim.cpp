@@ -49,6 +49,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <errno.h>
+#include <exception>
 
 #include <libcgroup.h>
 
@@ -156,28 +157,37 @@ void get_cgroup_from_pid(pid_t pid, std::string& result)
 	char* path;
 	asprintf(&path, "/proc/%d/cgroup", pid);
 	std::ifstream gcl(path, std::ifstream::in);
-	while(gcl.good())
-	{
-		std::string token;
-		gcl >> token;
-		size_t delim = 0;
-		delim = token.find_first_of(':');
-		token.erase(0, delim);
-		if(token.find("memory:/") != std::string::npos)
+	try {
+		while(gcl.good())
 		{
+			std::string token;
+			gcl >> token;
+			size_t delim = 0;
 			delim = token.find_first_of(':');
-			if((delim+1) > token.length())
+			token.erase(0, delim);
+			if(token.find("memory:/") != std::string::npos)
 			{
-				result.append("/;");
-			}
-			else
-			{
-				result.append(token.substr(delim+1));
-				result.append(";");
+				delim = token.find_first_of(':');
+				if((delim+1) > token.length())
+				{
+					result.append("/;");
+				}
+				else
+				{
+					result.append(token.substr(delim+1));
+					result.append(";");
+				}
 			}
 		}
-	}
 	gcl.close();
+	}
+	catch (std::exception& e)
+	{
+		//This shouldn't really ever happen
+		//see gcc bug 53984
+		slog(LOG_ALERT, "Unexpected Exception reading cgroup file\n");
+		result.append(e.what());
+	}
 	free(path);
 }
 
