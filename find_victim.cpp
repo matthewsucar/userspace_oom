@@ -56,76 +56,10 @@
 #include <cgroup_context.h>
 
 #include <log.h>
+#include <proc_utils.h>
 
-typedef uint64_t memory_t;
 
 void enumerate_tasks(char* cgpath, uid_t victim, std::vector<pid_t>& cached_task_list);
-
-
-uid_t get_uid(pid_t pid)
-{
-	char* status_path;
-	asprintf(&status_path, "/proc/%d/status", pid);
-	std::ifstream pid_status(status_path);
-	std::string line;
-	uid_t uid;
-	char found = 0;
-	while(pid_status.good())
-	{
-		std::getline(pid_status, line);
-		size_t pos = line.find("Uid:",0);
-		std::string token;
-		if(pos != std::string::npos)
-		{
-			std::stringstream ls(line,std::ios_base::in);
-			ls >> token; //header
-			ls >> uid;
-			found = 1;
-			break;
-		}
-	}	
-	if(!found) {
-		slog(LOG_ERR,"Error mapping UID for PID %d\n", pid);
-	}
-	pid_status.close();
-	free(status_path);
-	return(uid);
-}
-
-memory_t get_rss(pid_t pid)
-{
-	char* status_path;
-	asprintf(&status_path, "/proc/%d/status", pid);
-	std::ifstream pid_status(status_path);
-	std::string line;
-	uint64_t rss;
-	char found = 0;
-
-	while(pid_status.good())
-	{
-		std::getline(pid_status, line);
-		size_t pos = line.find("VmRSS:",0);
-		std::string token;
-		if(pos != std::string::npos)
-		{
-			std::stringstream ls(line,std::ios_base::in);
-			ls >> token; //header
-			ls >> rss;
-			//FIXME assumes always kB, which is currently correct
-			//but could change
-			found = 1;
-			break;
-		}
-	}
-	//if(!found) //ignore this case for now - due to races, it's fairly common 
-	//{
-	//	//note: this can happen for kthreads
-	//	slog(LOG_WARNING,"Error finding RSS for PID %d\n", pid);
-	//} 
-	pid_status.close();
-	free(status_path);
-	return(rss);
-}
 
 extern "C"
 {
