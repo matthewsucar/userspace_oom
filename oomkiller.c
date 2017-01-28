@@ -53,13 +53,16 @@
 #include <cgroup_context.h>
 
 #include <log.h>
+#include <classifier.h>
 
 void exit_handler(int);
 void crash_handler(int);
+void child_reap(int sig);
 
 static volatile sig_atomic_t exit_flag;
 static volatile sig_atomic_t restart_flag;
 static jmp_buf exit_stack;
+static pid_t classifier_pid;
 
 void start_oomkiller(struct cgroup_context* cgc);
 void stop_oomkiller(struct cgroup_context* cgc);
@@ -119,6 +122,19 @@ int main(int argc, char** argv)
 				break;
 		}
 	}
+	//setup classifier sub-daemon first
+	//must happen here due to some non-reentrant behavior. 
+	//(FIXME someday)
+	//ensure we don't make zombies
+	classifier_pid = 0;
+	memset(&sa, 0, sizeof(struct sigaction));
+	sa.sa_handler = &child_reap;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+	sigaction(SIGCHLD, &sa, 0);
+	start_classifier("/run/tc_classifyd");
+
+//TODO		
 	if(cgc.cgroup_name == NULL)
 	{
 		slog(LOG_ALERT, "FATAL: No cgroup specified, exiting");
@@ -262,6 +278,10 @@ void start_oomkiller(struct cgroup_context* cgc)
 void exit_handler(int signal)
 {
 	exit_flag = 1;
+	if(classifier_pid != 0)
+	{
+		kill(classifier_pid, SIGKILL);
+	}
 	longjmp(exit_stack, 0);
 }
 
@@ -281,4 +301,11 @@ void crash_handler(int singal) //this will leak file descriptors
 		slog(LOG_ALERT, "%s", strings[i]);
 	}
 	longjmp(exit_stack, 0);
+}
+
+void child_reap(int sig)
+{
+        int oerrno = errno;
+        while(waitpid((pid_t)(-1), 0, WNOHANG) > 0) {}
+        errno = oerrno;
 }
