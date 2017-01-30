@@ -13,3 +13,5 @@ g++ -g -I. -std=c++11 -c find_victim.cpp
 g++ -g -I. -std=c++11 -DUSE_SYSTEMD  `pkg-config --cflags dbus-1` -c classifier.cpp
 g++ -g *.o `pkg-config --cflags --libs dbus-1` -l cgroup -luuid
 g++ -g -I. -std=c++11 classify.cpp -o classify
+gcc -g -fPIC -Wall -Wextra -c pam_thundercracker.c
+gcc -shared -g -o pam_thundercracker.so pam_thundercracker.o -lpam
