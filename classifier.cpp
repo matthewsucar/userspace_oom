@@ -51,17 +51,23 @@
 #include <proc_utils.h>
 #include <classifier.h>
 
-int validate_pid(pid_t pid, uid_t request_uid)
+int validate_pid(pid_t pid, uid_t request_uid, pid_t requesting_pid)
 {
 	uid_t process_uid = get_uid(pid); //get target process owner from /proc
+	if(request_uid == 0) //let root do whatever
+		return(1);
+	if(requesting_pid == pid && request_uid >= 1000)
+	{
+		//setuid exec jailing self
+		//otherwise kernel wouldn't allow this case
+		return(1);  
+	}
 	if(process_uid < 1000)
 		return(0); //leave system processes alone
 	if(process_uid != request_uid && request_uid != 0)
 		return(0); //allow root to change other people's stuff (only)
 	if(process_uid == request_uid)
 		return(1); //people can change their own
-	if(request_uid == 0) //let root do whatever
-		return(1);
 	return(0);
 }
 
@@ -323,7 +329,7 @@ extern "C" int start_classifier(char* path)
 		slog(LOG_ALERT,
 			"cgroup change request for pid: %d by pid: %d, user: %d, group: %d",
 			data, ucredrx->pid, ucredrx->uid, ucredrx->gid);
-		if(validate_pid(data, ucredrx->uid))
+		if(validate_pid(data, ucredrx->uid, ucredrx->pid))
 		{
 			classify((pid_t)data);
 		}
