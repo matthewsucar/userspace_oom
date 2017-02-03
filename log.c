@@ -42,6 +42,11 @@
 
 #include <log.h>
 
+#include <config.h>
+#ifndef DAEMON_NAME
+#define DAEMON_NAME "userspace-oomkiller"
+#endif
+
 void slog(int priority, const char* format, ...)
 {
 	va_list args;
@@ -50,7 +55,7 @@ void slog(int priority, const char* format, ...)
 	if(!log_open)
 	{
 		log_open = 1;
-		openlog("userspace-oomkiller", LOG_NDELAY|LOG_PERROR|LOG_PID, LOG_DAEMON);
+		openlog(DAEMON_NAME, LOG_NDELAY|LOG_PERROR|LOG_PID, LOG_DAEMON);
 	}
 	vsyslog(priority, format, args);
 	va_end(args);
