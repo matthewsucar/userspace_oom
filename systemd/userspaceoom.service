@@ -1,0 +1,10 @@
+[Unit]
+Description=OOM Managment
+After=hpcjob.slice
+
+[Service]
+ExecStart=/usr/sbin/userspace-oomkiller -g hpcjob.slice
+Restart=always
+
+[Install]
+WantedBy=network.target
