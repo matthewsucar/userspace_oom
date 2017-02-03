@@ -194,7 +194,7 @@ int main(int argc, char** argv)
 
 	asprintf(&oom_control_path, "/%s/%s/memory.oom_control",
 			cgc.cgroup_path, cgc.cgroup_name);
-	cgc.oomfd = open(oom_control_path, O_RDONLY);
+	cgc.oomfd = open(oom_control_path, O_RDWR);
 	if(!(cgc.oomfd >=0))
 	{
 		slog(LOG_ALERT,

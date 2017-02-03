@@ -240,8 +240,7 @@ extern "C" int start_classifier(char* path)
 //int main(int argc, char** argv)
 {
 	//char path[] = "/run/tc_classifyd";
-	//pid_t pid = fork();
-	pid_t pid = 0;
+	pid_t pid = fork();
 	int s = (-1);
 	int cs = (-1);
 	int tru = 1;
