@@ -97,6 +97,8 @@ static int classify(pid_t pid)
 	char* pids_s = "PIDs";
 	char* slice = "hpcjob.slice";
 	char* slicepr = "Slice";
+	char* taskstr = "TasksMax";
+	uint64_t num_tasks_max = 16384;
 	dbus_error_init(&dberr);
 	uint32_t mypid = (uint32_t) pid;
 	con = dbus_bus_get_private(DBUS_BUS_SYSTEM, &dberr);
@@ -135,6 +137,12 @@ static int classify(pid_t pid)
 
 		//properties
 		dbus_message_iter_open_container(&msgi, DBUS_TYPE_ARRAY, "(sv)", &propary_i);
+
+		//tasks max
+		dbus_message_iter_open_container(&propary_i, DBUS_TYPE_STRUCT, NULL, &propstruct_i);
+		dbus_message_iter_append_basic(&propstruct_i, DBUS_TYPE_STRING, &taskstr);
+		append_variant(&propstruct_i, DBUS_TYPE_UINT64, &num_tasks_max);
+		dbus_message_iter_close_container(&propary_i, &propstruct_i);
 
 			//slice
 		dbus_message_iter_open_container(&propary_i, DBUS_TYPE_STRUCT, NULL, &propstruct_i);
