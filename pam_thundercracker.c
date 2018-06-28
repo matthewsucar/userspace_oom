@@ -29,7 +29,7 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t* pamh, int flags,
 	struct passwd* pws = getpwnam(username);
 	if(!pws)
 	{
-		syslog(LOG_ERR, "pad username from PAM");
+		syslog(LOG_ERR, "bad username from PAM");
 		return(PAM_SUCCESS);
 	}
 	if(pws->pw_uid < 1000)
@@ -85,6 +85,14 @@ PAM_EXTERN int pam_sm_open_session(pam_handle_t* pamh, int flags,
 	close(s);
 
 	closelog();
+
+  /** 
+   * Applications are inheriting the pam_thundercracker syslog name
+   * reopen with null name to force default name per glibc
+   */
+	openlog(NULL, 0, 0);
+	closelog();
+
 	return(PAM_SUCCESS);
 }
 
@@ -93,5 +101,9 @@ PAM_EXTERN int pam_sm_close_session(pam_handle_t* pamh, int flags,
 {
 	openlog("pam_thundercracker", LOG_PID|LOG_NDELAY|LOG_NOWAIT, LOG_AUTH);
 	closelog();
+
+	openlog(NULL, 0, 0);
+	closelog();
+
 	return(PAM_SUCCESS);
 }
