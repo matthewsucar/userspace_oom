@@ -1,0 +1,5 @@
+*.o
+libcgroup-0.41/
+thundercracker
+tc-classify
+pam_thundercracker.so

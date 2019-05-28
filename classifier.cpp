@@ -93,11 +93,11 @@ static int classify(pid_t pid)
 #endif
 	DBusConnection* con = NULL;
 	DBusError dberr;
-	char* mode = "fail"; //"replace"? //"fail"?
-	char* pids_s = "PIDs";
-	char* slice = "hpcjob.slice";
-	char* slicepr = "Slice";
-	char* taskstr = "TasksMax";
+	char const * mode = "fail"; //"replace"? //"fail"?
+	char const * pids_s = "PIDs";
+	char const * slice = "hpcjob.slice";
+	char const * slicepr = "Slice";
+	char const * taskstr = "TasksMax";
 	uint64_t num_tasks_max = 16384;
 	dbus_error_init(&dberr);
 	uint32_t mypid = (uint32_t) pid;
